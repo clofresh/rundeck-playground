@@ -8,19 +8,19 @@ date: 2018-07-20
 url: http://rundeck.org/
 providers:
   - name: HelloBash
-    service: WorkflowNodeStep
+    service: RemoteScriptNodeStep
     plugin-type: script
     script-interpreter: /bin/bash
     script-file: helloworld.sh
     script-args: ${job.name}
   - name: HelloPython
-    service: WorkflowNodeStep
+    service: RemoteScriptNodeStep
     plugin-type: script
     script-interpreter: /usr/bin/python
     script-file: helloworld.py
     script-args: ${job.name}
   - name: HelloGo
-    service: WorkflowNodeStep
+    service: RemoteScriptNodeStep
     plugin-type: script
     script-interpreter: /usr/bin/go run
     script-file: helloworld.go

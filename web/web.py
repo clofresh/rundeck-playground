@@ -19,6 +19,9 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
+    def log_message(self, format, *args):
+        pass
+
 
 def main():
     try:

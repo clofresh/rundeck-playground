@@ -1,3 +1,4 @@
 #!/bin/bash
 
-echo "Hello bash from $1"
+echo "[$(hostname)] Hello bash from $1"
+

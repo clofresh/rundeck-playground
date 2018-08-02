@@ -1,5 +1,10 @@
 version: '3'
 services:
+  # cli tool
+  rundeck-cli:
+    build: rundeck-cli
+    image: rd-example-rundeck-cli
+
   # "public" services
   bastion:
     build: ssh
