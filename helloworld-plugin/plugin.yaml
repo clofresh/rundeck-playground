@@ -1,0 +1,27 @@
+# yaml plugin metadata
+
+name: Hello world with args
+version: 1
+rundeckPluginVersion: 1.2
+author: Carlo Cabanilla
+date: 2018-07-20
+url: http://rundeck.org/
+providers:
+  - name: HelloBash
+    service: WorkflowNodeStep
+    plugin-type: script
+    script-interpreter: /bin/bash
+    script-file: helloworld.sh
+    script-args: ${job.name}
+  - name: HelloPython
+    service: WorkflowNodeStep
+    plugin-type: script
+    script-interpreter: /usr/bin/python
+    script-file: helloworld.py
+    script-args: ${job.name}
+  - name: HelloGo
+    service: WorkflowNodeStep
+    plugin-type: script
+    script-interpreter: /usr/bin/go run
+    script-file: helloworld.go
+    script-args: ${job.name}

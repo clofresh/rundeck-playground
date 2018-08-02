@@ -1,0 +1,38 @@
+version: '3'
+services:
+  # "public" services
+  bastion:
+    build: ssh
+    image: rd-example-ssh
+    ports:
+      - "2222:22"
+  loadbalancer:
+    build: loadbalancer
+    image: rd-example-loadbalancer
+    ports:
+      - "8080:80"
+  rundeck:
+    build: rundeck
+    image: rd-example-rundeck
+    ports:
+      - "4440:4440"
+    volumes:
+      - rundeck-data:/home/rundeck/server/data
+
+  # middle tier
+  web_1:
+    build: web
+    image: rd-example-web
+  web_2:
+    build: web
+    image: rd-example-web
+
+  # backend
+  database:
+    build: database
+    image: rd-example-database
+    volumes:
+        - db-data:/var/lib/postgresql/data
+volumes:
+  rundeck-data:
+  db-data:
