@@ -27,12 +27,8 @@ RD_MAKE_STATE_DIR := $(RD_PROJECT_CONFIG_DIR)/state
 RD_PROJECT := hello-project
 RD_JOB := hello_test_job
 RD_PROJECT_PROPERTIES := $(RD_PROJECT_CONFIG_DIR)/project.properties
-SSH_PASSWORD_FILE := ssh/ssh.password
 
 RD_PROJECT_STATE := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)
-RD_JOB_STATE := $(RD_MAKE_STATE_DIR)/$(RD_JOB)
-RD_KEYS_STATE := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-ssh-passwords
-
 RD_PLUGIN_STATE := $(RD_MAKE_STATE_DIR)/$(PLUGIN_NAME)
 
 plugin: $(RD_PLUGIN_STATE)
@@ -50,12 +46,19 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_PROPERTIES)
 	$(RD) projects configure update  -p $(RD_PROJECT) --file $(RD_PROJECT_PROPERTIES)
 	touch $@
 
-RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job $(RD_MAKE_STATE_DIR)/restart.job
+RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job \
+				 $(RD_MAKE_STATE_DIR)/restart.job \
+				 $(RD_MAKE_STATE_DIR)/change_password.job
 
 $(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE) $(RD_PLUGIN_STATE)
 	$(RD) jobs load -f $<  --format yaml -p $(RD_PROJECT) && touch $@
 
-$(RD_KEYS_STATE): $(SSH_PASSWORD_FILE)
+SSH_PASSWORD_FILE := ssh/ssh.password
+RD_KEYS_SSH := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-ssh-passwords
+RD_KEYS_DB := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-db-login
+RD_KEYS_STATES := $(RD_KEYS_SSH) $(RD_KEYS_DB)
+
+$(RD_KEYS_SSH): $(SSH_PASSWORD_FILE)
 	for node in $$(docker-compose config --services | grep web); do \
 		$(RD) keys create \
 			-f $< \
@@ -64,7 +67,14 @@ $(RD_KEYS_STATE): $(SSH_PASSWORD_FILE)
 	done
 	touch $@
 
-rd-config: $(RD_JOB_STATES) $(RD_KEYS_STATE)
+$(RD_KEYS_DB): database/db_user.txt database/db_password.txt
+	$(RD) keys create -t password -f database/db_user.txt \
+		--path keys/projects/$(RD_PROJECT)/db/user
+	$(RD) keys create -t password -f database/db_password.txt \
+		--path keys/projects/$(RD_PROJECT)/db/password
+	touch $@
+
+rd-config: $(RD_JOB_STATES) $(RD_KEYS_STATES)
 
 JOB ?= Hello Test Job
 rd-run-job: rd-config

@@ -8,8 +8,8 @@ function start() {
   RUN=0
   for f in /etc/simple-init.d/*; do
     app=$(basename $f)
-    stop_${app}
     source $f
+    stop_${app}
     start_${app}
   done
   RUN=1

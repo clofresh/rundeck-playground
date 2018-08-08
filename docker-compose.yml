@@ -1,5 +1,11 @@
 version: '3'
 services:
+  bastion:
+    build: ssh
+    image: rd-example-ssh
+    ports:
+      - "2222:22"
+
   # cli tool
   rundeck-cli:
     build: rundeck-cli
@@ -17,12 +23,6 @@ services:
     build: web
     image: rd-example-web
   
-  # "public" services
-  bastion:
-    build: ssh
-    image: rd-example-ssh
-    ports:
-      - "2222:22"
   loadbalancer:
     build: loadbalancer
     image: rd-example-loadbalancer

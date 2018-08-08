@@ -31,12 +31,29 @@ providers:
         description: the http endpoint to poll to check that it's healthy
         default: http://localhost:8080
 
-  - name: HelloPython
+  - name: ChangePassword
     service: RemoteScriptNodeStep
     plugin-type: script
     script-interpreter: /usr/bin/python3
-    script-file: helloworld.py
-    script-args: ${job.name} /etc/web.yaml
+    script-file: change_password.py
+    script-args: /etc/web.yaml ${config.new_user} ${config.new_password}
+    config:
+      - type: String
+        name: new_user
+        title: new_user
+        description: 'New db user'
+        renderingOptions:
+          selectionAccessor: "STORAGE_PATH"
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+          storage-path-root: "keys"
+      - type: String
+        name: new_password
+        title: new_password
+        description: 'New db password'
+        renderingOptions:
+          selectionAccessor: "STORAGE_PATH"
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+          storage-path-root: "keys"
 
   - name: HelloGo
     service: RemoteScriptNodeStep
