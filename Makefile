@@ -17,7 +17,7 @@ RUNDECK_CONTAINER := rundeck-custom-plugin-example_rundeck_1
 RUNDECK_CONTAINER_LIBEXT := /home/rundeck/libext
 
 compose: $(INSTALLED_PLUGIN_ZIP)
-	docker-compose up --build
+	docker-compose up --build --scale web=2
 
 # Builds a zip of the plugin files
 RD := docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$$(pwd)",target=/root rd-example-rundeck-cli

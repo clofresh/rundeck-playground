@@ -1,5 +1,5 @@
 function start_web() {
-  /usr/bin/web.py &
+  /usr/bin/web &
   PIDS[web]=$!
-  echo "Started web! (pid: ${PIDS[web]})"
+  echo "Started web (pid: ${PIDS[web]})"
 }
