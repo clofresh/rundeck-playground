@@ -13,12 +13,31 @@ providers:
     script-interpreter: /bin/bash
     script-file: helloworld.sh
     script-args: ${job.name}
+
+  - name: RestartApp
+    service: RemoteScriptNodeStep
+    plugin-type: script
+    script-interpreter: /bin/bash
+    script-file: restart.sh
+    script-args: ${config.process} ${config.health_url}
+    config:
+      - type: String
+        name: process
+        title: process
+        description: the process to restart
+      - type: String
+        name: health_url
+        title: health_url
+        description: the http endpoint to poll to check that it's healthy
+        default: http://localhost:8080
+
   - name: HelloPython
     service: RemoteScriptNodeStep
     plugin-type: script
-    script-interpreter: /usr/bin/python
+    script-interpreter: /usr/bin/python3
     script-file: helloworld.py
-    script-args: ${job.name}
+    script-args: ${job.name} /etc/web.yaml
+
   - name: HelloGo
     service: RemoteScriptNodeStep
     plugin-type: script

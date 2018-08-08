@@ -1,5 +1,5 @@
 function start_web() {
-  python3 -u /usr/bin/web.py &
+  python3 -u /usr/share/web.py &
   PIDS[web]=$!
   echo "Started web! (pid: ${PIDS[web]})"
 }

@@ -1,0 +1,25 @@
+- defaultTab: summary
+  description: ''
+  executionEnabled: true
+  loglevel: INFO
+  name: restart
+  nodeFilterEditable: false
+  nodefilters:
+    dispatch:
+      excludePrecedence: true
+      keepgoing: false
+      rankOrder: ascending
+      successOnEmptyNodeFilter: false
+      threadcount: '1'
+    filter: web_.*
+  nodesSelectedByDefault: true
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - configuration:
+        health_url: http://localhost:8080
+        process: python3
+      nodeStep: true
+      type: RestartApp
+    keepgoing: false
+    strategy: node-first

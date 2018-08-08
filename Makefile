@@ -50,8 +50,9 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_PROPERTIES)
 	$(RD) projects configure update  -p $(RD_PROJECT) --file $(RD_PROJECT_PROPERTIES)
 	touch $@
 
-$(RD_JOB_STATE): $(RD_PROJECT_CONFIG_DIR)/$(RD_JOB).yaml $(RD_PROJECT_STATE) $(RD_PLUGIN_STATE)
-	echo $?
+RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job $(RD_MAKE_STATE_DIR)/restart.job
+
+$(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE) $(RD_PLUGIN_STATE)
 	$(RD) jobs load -f $<  --format yaml -p $(RD_PROJECT) && touch $@
 
 $(RD_KEYS_STATE): $(SSH_PASSWORD_FILE)
@@ -63,16 +64,16 @@ $(RD_KEYS_STATE): $(SSH_PASSWORD_FILE)
 	done
 	touch $@
 
-rd-config: $(RD_JOB_STATE) $(RD_KEYS_STATE)
+rd-config: $(RD_JOB_STATES) $(RD_KEYS_STATE)
 
+JOB ?= Hello Test Job
 rd-run-job: rd-config
-	$(RD) run -p $(RD_PROJECT) -f --job 'Hello Test Job'
+	$(RD) run -p $(RD_PROJECT) -f --job '$(JOB)'
 
 update-web:
 	for i in $(shell seq 1 $(NUM_WEB)); do \
 		container=rundeck-custom-plugin-example_web_$${i}; \
-		docker cp web/web.js $${container}:/usr/local/lib/web.js && \
-		docker exec $${container} /bin/bash -c 'kill -HUP 1'; \
+		docker cp web/web.py $${container}:/usr/share/web.py; \
 	done
 
 .PHONY: compose plugin rd-config rd-run-job update-web

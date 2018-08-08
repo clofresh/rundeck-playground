@@ -1,0 +1,5 @@
+db:
+  host: rundeck-custom-plugin-example_database_1
+  port: 5432
+  user: web
+  password: sup3r!S3cr3
