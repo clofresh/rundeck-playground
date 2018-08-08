@@ -15,9 +15,10 @@ INSTALLED_PLUGIN_ZIP := $(OUTPUT_DIR)/$(PLUGIN_ZIP)
 # Docker variables
 RUNDECK_CONTAINER := rundeck-custom-plugin-example_rundeck_1
 RUNDECK_CONTAINER_LIBEXT := /home/rundeck/libext
+NUM_WEB := 2
 
 compose: $(INSTALLED_PLUGIN_ZIP)
-	docker-compose up --build --scale web=2
+	docker-compose up --build --scale web=$(NUM_WEB)
 
 # Builds a zip of the plugin files
 RD := docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$$(pwd)",target=/root rd-example-rundeck-cli
@@ -67,4 +68,11 @@ rd-config: $(RD_JOB_STATE) $(RD_KEYS_STATE)
 rd-run-job: rd-config
 	$(RD) run -p $(RD_PROJECT) -f --job 'Hello Test Job'
 
-.PHONY: compose plugin rd-config rd-run-job
+update-web:
+	for i in $(shell seq 1 $(NUM_WEB)); do \
+		container=rundeck-custom-plugin-example_web_$${i}; \
+		docker cp web/web.js $${container}:/usr/local/lib/web.js && \
+		docker exec $${container} /bin/bash -c 'kill -HUP 1'; \
+	done
+
+.PHONY: compose plugin rd-config rd-run-job update-web
