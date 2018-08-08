@@ -5,6 +5,21 @@ services:
     build: rundeck-cli
     image: rd-example-rundeck-cli
 
+  # backend
+  database:
+    build: database
+    image: rd-example-database
+    volumes:
+        - db-data:/var/lib/postgresql/data
+
+  # middle tier
+  web_1:
+    build: web
+    image: rd-example-web
+  web_2:
+    build: web
+    image: rd-example-web
+
   # "public" services
   bastion:
     build: ssh
@@ -24,20 +39,7 @@ services:
     volumes:
       - rundeck-data:/home/rundeck/server/data
 
-  # middle tier
-  web_1:
-    build: web
-    image: rd-example-web
-  web_2:
-    build: web
-    image: rd-example-web
-
-  # backend
-  database:
-    build: database
-    image: rd-example-database
-    volumes:
-        - db-data:/var/lib/postgresql/data
+        
 volumes:
   rundeck-data:
   db-data:
