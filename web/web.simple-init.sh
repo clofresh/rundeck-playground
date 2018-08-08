@@ -1,7 +1,7 @@
 function start_web() {
-  nodejs /usr/local/lib/web.js &
+  python3 -u /usr/bin/web.py &
   PIDS[web]=$!
-  echo "Started web (pid: ${PIDS[web]})"
+  echo "Started web! (pid: ${PIDS[web]})"
 }
 
 function stop_web() {

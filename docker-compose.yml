@@ -13,7 +13,10 @@ services:
         - db-data:/var/lib/postgresql/data
 
   # middle tier
-  web:
+  web_1:
+    build: web
+    image: rd-example-web
+  web_2:
     build: web
     image: rd-example-web
 
