@@ -52,7 +52,7 @@ You can also interact with the Rundeck server using the `rd` command line tool. 
 
 ```
 docker run \
-    --network rundeck-custom-plugin-example_default \
+    --network rundeck-playground_default \
     --mount type=bind,source="$(pwd)",target=/root \
     -e RD_PROJECT=hello-project \
     playground-rundeck-cli \
@@ -62,7 +62,7 @@ docker run \
 To avoid all that typing, you can create an alias:
 
 ```
-alias rd='docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$(pwd)",target=/root -e RD_PROJECT=hello-project playground-rundeck-cli '
+alias rd='docker run --network rundeck-playground_default --mount type=bind,source="$(pwd)",target=/root -e RD_PROJECT=hello-project playground-rundeck-cli '
 
 rd run -f --job 'Hello Test Job'
 ```
