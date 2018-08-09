@@ -51,15 +51,20 @@ You might have to wait a few seconds for the Rundeck server to finish booting up
 You can also interact with the Rundeck server using the `rd` command line tool. Since both the server and the client are dockerized, you'll need to run it with a special command:
 
 ```
-docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$(pwd)",target=/root rd-example-rundeck-cli run -p hello-project -f --job 'Hello Test Job'
+docker run \
+    --network rundeck-custom-plugin-example_default \
+    --mount type=bind,source="$(pwd)",target=/root \
+    -e RD_PROJECT=hello-project \
+    playground-rundeck-cli \
+    run -f --job 'Hello Test Job'
 ```
 
 To avoid all that typing, you can create an alias:
 
 ```
-alias rd='docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$(pwd)",target=/root rd-example-rundeck-cli '
+alias rd='docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$(pwd)",target=/root -e RD_PROJECT=hello-project playground-rundeck-cli '
 
-rd run -p hello-project -f --job 'Hello Test Job'
+rd run -f --job 'Hello Test Job'
 ```
 
 ## Directory structure

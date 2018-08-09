@@ -13,15 +13,17 @@ PLUGIN_ZIP := $(PLUGIN_NAME).zip
 INSTALLED_PLUGIN_ZIP := $(OUTPUT_DIR)/$(PLUGIN_ZIP)
 
 # Docker variables
-RUNDECK_CONTAINER := rundeck-custom-plugin-example_rundeck_1
+CONTAINER_PREFIX := $(shell basename $$(pwd))_
+NETWORK_NAME := $(CONTAINER_PREFIX)default
+RUNDECK_CONTAINER := $(CONTAINER_PREFIX)rundeck_1
 RUNDECK_CONTAINER_LIBEXT := /home/rundeck/libext
 NUM_WEB := 2
 
 compose: $(INSTALLED_PLUGIN_ZIP)
-	docker-compose up --build --scale web=$(NUM_WEB)
+	docker-compose up --build
 
 # Builds a zip of the plugin files
-RD := docker run --network rundeck-custom-plugin-example_default --mount type=bind,source="$$(pwd)",target=/root rd-example-rundeck-cli
+RD := docker run --network $(NETWORK_NAME) --mount type=bind,source="$$(pwd)",target=/root playground-rundeck-cli
 RD_PROJECT_CONFIG_DIR := rundeck-project
 RD_MAKE_STATE_DIR := $(RD_PROJECT_CONFIG_DIR)/state
 RD_PROJECT := hello-project
@@ -94,7 +96,7 @@ rd-run-job: rd-config
 
 update-web:
 	for i in $(shell seq 1 $(NUM_WEB)); do \
-		container=rundeck-custom-plugin-example_web_$${i}; \
+		container=$(CONTAINER_PREFIX)web_$${i}_1; \
 		docker cp web/web.py $${container}:/usr/share/web.py; \
 	done
 

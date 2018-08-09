@@ -1,42 +1,48 @@
 version: '3'
 services:
+  # public-facing ssh host
   bastion:
     build: ssh
-    image: rd-example-ssh
+    image: playground-ssh
     ports:
       - "2222:22"
 
   # cli tool
   rundeck-cli:
     build: rundeck-cli
-    image: rd-example-rundeck-cli
+    image: playground-rundeck-cli
 
   # backend
   database:
     build: database
-    image: rd-example-database
+    image: playground-database
     volumes:
         - db-data:/var/lib/postgresql/data
 
   # middle tier
-  web:
+  web_1:
     build: web
-    image: rd-example-web
-  
+    image: playground-web
+  web_2:
+    build: web
+    image: playground-web
+
+  # public-facing http proxy
   loadbalancer:
     build: loadbalancer
-    image: rd-example-loadbalancer
+    image: playground-loadbalancer
     ports:
       - "8080:80"
+
+  # rundeck server
   rundeck:
     build: rundeck
-    image: rd-example-rundeck
+    image: playground-rundeck
     ports:
       - "4440:4440"
     volumes:
       - rundeck-data:/home/rundeck/server/data
 
-        
 volumes:
   rundeck-data:
   db-data:

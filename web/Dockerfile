@@ -1,4 +1,4 @@
-FROM rd-example-ssh
+FROM playground-ssh
 
 RUN apt-get update -qq && apt-get install -qqy python3 postgresql-client python3-pip
 RUN pip3 install pyyaml pyaml
