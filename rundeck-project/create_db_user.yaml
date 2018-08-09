@@ -1,6 +1,7 @@
 - defaultTab: summary
   description: ''
   executionEnabled: true
+  id: daeb3230-dcc7-4b82-97f4-f744f050bffe
   loglevel: INFO
   name: create_db_user
   nodeFilterEditable: false
@@ -14,14 +15,24 @@
     filter: web_1
   nodesSelectedByDefault: true
   scheduleEnabled: true
+  options:
+  - label: Master db user version
+    name: master_user_version
+    required: false
+    default: 1
+  - label: Web db user version
+    name: web_user_version
+    default: 2
   sequence:
     commands:
     - nodeStep: true
       configuration:
-        master_db_user: keys/projects/hello-project/db/master-user
-        master_db_password: keys/projects/hello-project/db/master-password
-        new_user: keys/projects/hello-project/db/user
-        new_password: keys/projects/hello-project/db/password
+        master_db_user: master${option.master_user_version}
+        master_db_password: keys/projects/hello-project/db/master${option.master_user_version}
+        new_user: web${option.web_user_version}
+        new_password: keys/projects/hello-project/db/web${option.web_user_version}
+        role: web
       type: CreateDBUser
     keepgoing: false
     strategy: node-first
+  uuid: daeb3230-dcc7-4b82-97f4-f744f050bffe

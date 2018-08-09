@@ -1,6 +1,7 @@
 - defaultTab: summary
   description: 'A job to test our hello world plugin'
   executionEnabled: true
+  id: d6a1284a-7905-4835-b4b8-844c06670194
   loglevel: INFO
   name: Hello Test Job
   nodeFilterEditable: false
@@ -19,3 +20,4 @@
       type: HelloBash
     keepgoing: false
     strategy: node-first
+  uuid: d6a1284a-7905-4835-b4b8-844c06670194

@@ -1,6 +1,7 @@
 - defaultTab: summary
   description: ''
   executionEnabled: true
+  id: 3e692968-e82f-4e69-a14f-d074c394cb6c
   loglevel: INFO
   name: restart
   nodeFilterEditable: false
@@ -23,3 +24,4 @@
       type: RestartApp
     keepgoing: false
     strategy: node-first
+  uuid: 3e692968-e82f-4e69-a14f-d074c394cb6c

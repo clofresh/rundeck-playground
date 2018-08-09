@@ -51,14 +51,16 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_PROPERTIES)
 RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job \
 				 $(RD_MAKE_STATE_DIR)/restart.job \
 				 $(RD_MAKE_STATE_DIR)/change_password.job \
-				 $(RD_MAKE_STATE_DIR)/create_db_user.job
+				 $(RD_MAKE_STATE_DIR)/create_db_user.job \
+				 $(RD_MAKE_STATE_DIR)/rotate_db_password.job
 
 $(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE)
 	$(RD) jobs load -f $<  --format yaml -p $(RD_PROJECT) && touch $@
 
 SSH_PASSWORD_FILE := ssh/ssh.password
 RD_KEYS_SSH := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-ssh-passwords
-RD_KEYS_DB := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-db-login
+RD_KEYS_DB_PREFIX := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-db-login
+RD_KEYS_DB := $(RD_KEYS_DB_PREFIX)-master1 $(RD_KEYS_DB_PREFIX)-web1 $(RD_KEYS_DB_PREFIX)-web2
 RD_KEYS_STATES := $(RD_KEYS_SSH) $(RD_KEYS_DB)
 
 $(RD_KEYS_SSH): $(SSH_PASSWORD_FILE)
@@ -70,25 +72,13 @@ $(RD_KEYS_SSH): $(SSH_PASSWORD_FILE)
 	done
 	touch $@
 
-$(RD_KEYS_DB): database/master_db_user.txt database/master_db_password.txt database/db_user.txt database/db_password.txt
-	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/master-user || true
-	$(RD) keys create -t password -f database/master_db_user.txt \
-		--path keys/projects/$(RD_PROJECT)/db/master-user
-
-	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/master-password || true
-	$(RD) keys create -t password -f database/master_db_password.txt \
-		--path keys/projects/$(RD_PROJECT)/db/master-password
-
-	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/user || true
-	$(RD) keys create -t password -f database/db_user.txt \
-		--path keys/projects/$(RD_PROJECT)/db/user
-
-	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/password || true
-	$(RD) keys create -t password -f database/db_password.txt \
-		--path keys/projects/$(RD_PROJECT)/db/password
+keys: $(RD_KEYS_DB)
+$(RD_KEYS_DB_PREFIX)-%: database/users/%
+	$(RD) keys create -t password -f $< \
+		--path keys/projects/$(RD_PROJECT)/db/$$(basename $<)
 	touch $@
 
-rd-config: $(RD_PLUGIN_STATE) $(RD_JOB_STATES) $(RD_KEYS_STATES)
+rd-config: $(RD_PLUGIN_STATE) $(RD_JOB_STATES) $(RD_KEYS_STATES) $(RD_KEYS_DB)
 
 JOB ?= Hello Test Job
 rd-run-job: rd-config
@@ -100,4 +90,12 @@ update-web:
 		docker cp web/web.py $${container}:/usr/share/web.py; \
 	done
 
-.PHONY: compose plugin rd-config rd-run-job update-web
+clean: clean-make-state clean-docker
+
+clean-make-state:
+	rm $(RD_MAKE_STATE_DIR)/*
+
+clean-docker:
+	docker-compose down --rmi all -v
+
+.PHONY: compose plugin rd-config rd-run-job update-web keys clean clean-make-state

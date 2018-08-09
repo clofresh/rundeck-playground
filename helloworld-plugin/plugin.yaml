@@ -31,69 +31,57 @@ providers:
         description: the http endpoint to poll to check that it's healthy
         default: http://localhost:8080
 
-  - name: ChangePassword
+  - name: UpdateDBCredentials
     service: RemoteScriptNodeStep
     plugin-type: script
     script-interpreter: /usr/bin/python3
     script-file: change_password.py
-    script-args: /etc/web.yaml ${config.new_user} ${config.new_password}
+    script-args: /etc/web.yaml ${config.user} ${config.password}
     config:
       - type: String
-        name: new_user
-        title: new_user
-        description: 'New db user'
-        renderingOptions:
-          selectionAccessor: "STORAGE_PATH"
-          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
-          storage-path-root: "keys"
+        name: user
+        title: user
+        description: 'db user'
       - type: String
-        name: new_password
-        title: new_password
-        description: 'New db password'
+        name: password
+        title: password
+        description: 'db password'
         renderingOptions:
-          selectionAccessor: "STORAGE_PATH"
           valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
-          storage-path-root: "keys"
 
   - name: CreateDBUser
     service: RemoteScriptNodeStep
     plugin-type: script
     script-interpreter: /bin/bash
     script-file: create-db-user.sh
-    script-args: ${config.master_db_user} ${config.master_db_password} ${config.new_user} ${config.new_password}
+    script-args: ${config.master_db_user} ${config.master_db_password} ${config.new_user} ${config.new_password} ${config.role}
     config:
       - type: String
         name: master_db_user
         title: master_db_user
-        description: 'master db user with rights to create new users'
-        renderingOptions:
-          selectionAccessor: "STORAGE_PATH"
-          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
-          storage-path-root: "keys"
+        description: 'master db user'
+        default: master1
       - type: String
         name: master_db_password
         title: master_db_password
         description: 'master db user password'
+        default: keys/projects/hello-project/db/master1
         renderingOptions:
-          selectionAccessor: "STORAGE_PATH"
           valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
-          storage-path-root: "keys"
       - type: String
         name: new_user
         title: new_user
         description: 'New db user'
-        renderingOptions:
-          selectionAccessor: "STORAGE_PATH"
-          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
-          storage-path-root: "keys"
       - type: String
         name: new_password
         title: new_password
         description: 'New db password'
         renderingOptions:
-          selectionAccessor: "STORAGE_PATH"
           valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
-          storage-path-root: "keys"
+      - type: String
+        name: role
+        title: role
+        description: 'Database role to grant the new user'
 
   - name: HelloGo
     service: RemoteScriptNodeStep
