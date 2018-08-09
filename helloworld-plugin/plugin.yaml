@@ -55,6 +55,46 @@ providers:
           valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
           storage-path-root: "keys"
 
+  - name: CreateDBUser
+    service: RemoteScriptNodeStep
+    plugin-type: script
+    script-interpreter: /bin/bash
+    script-file: create-db-user.sh
+    script-args: ${config.master_db_user} ${config.master_db_password} ${config.new_user} ${config.new_password}
+    config:
+      - type: String
+        name: master_db_user
+        title: master_db_user
+        description: 'master db user with rights to create new users'
+        renderingOptions:
+          selectionAccessor: "STORAGE_PATH"
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+          storage-path-root: "keys"
+      - type: String
+        name: master_db_password
+        title: master_db_password
+        description: 'master db user password'
+        renderingOptions:
+          selectionAccessor: "STORAGE_PATH"
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+          storage-path-root: "keys"
+      - type: String
+        name: new_user
+        title: new_user
+        description: 'New db user'
+        renderingOptions:
+          selectionAccessor: "STORAGE_PATH"
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+          storage-path-root: "keys"
+      - type: String
+        name: new_password
+        title: new_password
+        description: 'New db password'
+        renderingOptions:
+          selectionAccessor: "STORAGE_PATH"
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+          storage-path-root: "keys"
+
   - name: HelloGo
     service: RemoteScriptNodeStep
     plugin-type: script

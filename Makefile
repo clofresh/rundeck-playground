@@ -48,9 +48,10 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_PROPERTIES)
 
 RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job \
 				 $(RD_MAKE_STATE_DIR)/restart.job \
-				 $(RD_MAKE_STATE_DIR)/change_password.job
+				 $(RD_MAKE_STATE_DIR)/change_password.job \
+				 $(RD_MAKE_STATE_DIR)/create_db_user.job
 
-$(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE) $(RD_PLUGIN_STATE)
+$(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE)
 	$(RD) jobs load -f $<  --format yaml -p $(RD_PROJECT) && touch $@
 
 SSH_PASSWORD_FILE := ssh/ssh.password
@@ -59,22 +60,33 @@ RD_KEYS_DB := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-db-login
 RD_KEYS_STATES := $(RD_KEYS_SSH) $(RD_KEYS_DB)
 
 $(RD_KEYS_SSH): $(SSH_PASSWORD_FILE)
-	for node in $$(docker-compose config --services | grep web); do \
+	for i in $$(seq 1 $(NUM_WEB)); do \
 		$(RD) keys create \
 			-f $< \
-			--path keys/projects/$(RD_PROJECT)/nodes/$$node/ssh.password \
+			--path keys/projects/$(RD_PROJECT)/nodes/web_$${i}/ssh.password \
 			-t password; \
 	done
 	touch $@
 
-$(RD_KEYS_DB): database/db_user.txt database/db_password.txt
+$(RD_KEYS_DB): database/master_db_user.txt database/master_db_password.txt database/db_user.txt database/db_password.txt
+	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/master-user || true
+	$(RD) keys create -t password -f database/master_db_user.txt \
+		--path keys/projects/$(RD_PROJECT)/db/master-user
+
+	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/master-password || true
+	$(RD) keys create -t password -f database/master_db_password.txt \
+		--path keys/projects/$(RD_PROJECT)/db/master-password
+
+	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/user || true
 	$(RD) keys create -t password -f database/db_user.txt \
 		--path keys/projects/$(RD_PROJECT)/db/user
+
+	$(RD) keys delete -p keys/projects/$(RD_PROJECT)/db/password || true
 	$(RD) keys create -t password -f database/db_password.txt \
 		--path keys/projects/$(RD_PROJECT)/db/password
 	touch $@
 
-rd-config: $(RD_JOB_STATES) $(RD_KEYS_STATES)
+rd-config: $(RD_PLUGIN_STATE) $(RD_JOB_STATES) $(RD_KEYS_STATES)
 
 JOB ?= Hello Test Job
 rd-run-job: rd-config

@@ -1,0 +1,27 @@
+- defaultTab: summary
+  description: ''
+  executionEnabled: true
+  loglevel: INFO
+  name: create_db_user
+  nodeFilterEditable: false
+  nodefilters:
+    dispatch:
+      excludePrecedence: true
+      keepgoing: false
+      rankOrder: ascending
+      successOnEmptyNodeFilter: false
+      threadcount: '1'
+    filter: web_1
+  nodesSelectedByDefault: true
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - nodeStep: true
+      configuration:
+        master_db_user: keys/projects/hello-project/db/master-user
+        master_db_password: keys/projects/hello-project/db/master-password
+        new_user: keys/projects/hello-project/db/user
+        new_password: keys/projects/hello-project/db/password
+      type: CreateDBUser
+    keepgoing: false
+    strategy: node-first
