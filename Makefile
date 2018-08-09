@@ -1,69 +1,60 @@
 SHELL := /bin/bash
-PLUGIN_SRC_DIR := helloworld-plugin
+PLUGIN_NAME := db-creds-plugin
 
-# Plugin input files
-PLUGIN_FILES := $(PLUGIN_SRC_DIR)/plugin.yaml $(shell find $(PLUGIN_SRC_DIR)/contents -type f)
+# Make
+RD_MAKE_STATE_DIR := .makestate
 
-# Output location of the zipped plugin
-OUTPUT_DIR := rundeck
-
-# Local variables
-PLUGIN_NAME := $(PLUGIN_SRC_DIR)
-PLUGIN_ZIP := $(PLUGIN_NAME).zip
-INSTALLED_PLUGIN_ZIP := $(OUTPUT_DIR)/$(PLUGIN_ZIP)
-
-# Docker variables
+# Docker
 CONTAINER_PREFIX := $(shell basename $$(pwd))_
 NETWORK_NAME := $(CONTAINER_PREFIX)default
-RUNDECK_CONTAINER := $(CONTAINER_PREFIX)rundeck_1
-RUNDECK_CONTAINER_LIBEXT := /home/rundeck/libext
 NUM_WEB := 2
 
+# Command to call the Rundeck client from outside of the container
+RD := docker run --network $(NETWORK_NAME) --mount type=bind,source="$$(pwd)",target=/root playground-rundeck-cli
+
+# Plugin
+PLUGIN_SRC_DIR := $(PLUGIN_NAME)
+PLUGIN_FILES := $(PLUGIN_SRC_DIR)/plugin.yaml $(shell find $(PLUGIN_SRC_DIR)/contents -type f)
+INSTALLED_PLUGIN_ZIP := rundeck/$(PLUGIN_NAME).zip
+RD_PLUGIN_STATE := $(RD_MAKE_STATE_DIR)/$(PLUGIN_NAME)
+RUNDECK_CONTAINER := $(CONTAINER_PREFIX)rundeck_1
+RUNDECK_CONTAINER_LIBEXT := /home/rundeck/libext
+
+# Runs docker-compose to spin up the full environment
 compose: $(INSTALLED_PLUGIN_ZIP)
 	docker-compose up --build
 
 # Builds a zip of the plugin files
-RD := docker run --network $(NETWORK_NAME) --mount type=bind,source="$$(pwd)",target=/root playground-rundeck-cli
-RD_PROJECT_CONFIG_DIR := rundeck-project
-RD_MAKE_STATE_DIR := $(RD_PROJECT_CONFIG_DIR)/state
-RD_PROJECT := hello-project
-RD_JOB := hello_test_job
-RD_PROJECT_PROPERTIES := $(RD_PROJECT_CONFIG_DIR)/project.properties
+$(INSTALLED_PLUGIN_ZIP): $(PLUGIN_FILES)
+	zip $@ $(PLUGIN_FILES)
 
-RD_PROJECT_STATE := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)
-RD_PLUGIN_STATE := $(RD_MAKE_STATE_DIR)/$(PLUGIN_NAME)
-
+# Installs the plugin into the Rundeck container's plugin directory
 plugin: $(RD_PLUGIN_STATE)
 $(RD_PLUGIN_STATE): $(INSTALLED_PLUGIN_ZIP)
 	docker cp $< $(RUNDECK_CONTAINER):$(RUNDECK_CONTAINER_LIBEXT)/
 	touch $@
 
-$(INSTALLED_PLUGIN_ZIP): $(PLUGIN_FILES)
-	mkdir -p $$(dirname $(INSTALLED_PLUGIN_ZIP))
-	zip $@ $(PLUGIN_FILES)
-
-$(RD_PROJECT_STATE): $(RD_PROJECT_PROPERTIES)
-	mkdir -p $$(dirname $(RD_PROJECT_STATE))
+# Creates the Rundeck project and sets its config properties
+RD_PROJECT := hello-project
+RD_PROJECT_CONFIG_DIR := rundeck-project
+RD_PROJECT_STATE := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)
+$(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties
 	$(RD) projects create -p $(RD_PROJECT) || true
-	$(RD) projects configure update  -p $(RD_PROJECT) --file $(RD_PROJECT_PROPERTIES)
+	$(RD) projects configure update  -p $(RD_PROJECT) --file $<
 	touch $@
 
+# Installs the Rundeck job configuration
 RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job \
 				 $(RD_MAKE_STATE_DIR)/restart.job \
 				 $(RD_MAKE_STATE_DIR)/change_password.job \
 				 $(RD_MAKE_STATE_DIR)/create_db_user.job \
 				 $(RD_MAKE_STATE_DIR)/rotate_db_password.job
-
 $(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE)
 	$(RD) jobs load -f $<  --format yaml -p $(RD_PROJECT) && touch $@
 
-SSH_PASSWORD_FILE := ssh/ssh.password
+# Installs the ssh password into the Rundeck Key Storage
 RD_KEYS_SSH := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-ssh-passwords
-RD_KEYS_DB_PREFIX := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-db-login
-RD_KEYS_DB := $(RD_KEYS_DB_PREFIX)-master1 $(RD_KEYS_DB_PREFIX)-web1 $(RD_KEYS_DB_PREFIX)-web2
-RD_KEYS_STATES := $(RD_KEYS_SSH) $(RD_KEYS_DB)
-
-$(RD_KEYS_SSH): $(SSH_PASSWORD_FILE)
+$(RD_KEYS_SSH): ssh/ssh.password
 	for i in $$(seq 1 $(NUM_WEB)); do \
 		$(RD) keys create \
 			-f $< \
@@ -72,30 +63,43 @@ $(RD_KEYS_SSH): $(SSH_PASSWORD_FILE)
 	done
 	touch $@
 
-keys: $(RD_KEYS_DB)
+# Installs the db user passwords into the Rundeck Key Storage
+RD_KEYS_DB_PREFIX := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-db-login
+RD_KEYS_DB := $(RD_KEYS_DB_PREFIX)-master1 $(RD_KEYS_DB_PREFIX)-web1 $(RD_KEYS_DB_PREFIX)-web2
 $(RD_KEYS_DB_PREFIX)-%: database/users/%
 	$(RD) keys create -t password -f $< \
 		--path keys/projects/$(RD_PROJECT)/db/$$(basename $<)
 	touch $@
 
+# Installs the secrets into the Rundeck Key Storage
+RD_KEYS_STATES := $(RD_KEYS_SSH) $(RD_KEYS_DB)
+keys: $(RD_KEYS_STATES)
+
+# Installs all the Rundeck config, keys and plugin
 rd-config: $(RD_PLUGIN_STATE) $(RD_JOB_STATES) $(RD_KEYS_STATES) $(RD_KEYS_DB)
 
+# Triggers a Rundeck job
 JOB ?= Hello Test Job
 rd-run-job: rd-config
 	$(RD) run -p $(RD_PROJECT) -f --job '$(JOB)'
 
+# Updates the web.py file in the running containers to simulate a deployment
 update-web:
 	for i in $(shell seq 1 $(NUM_WEB)); do \
 		container=$(CONTAINER_PREFIX)web_$${i}_1; \
 		docker cp web/web.py $${container}:/usr/share/web.py; \
 	done
 
-clean: clean-make-state clean-docker
+# Clears all file and docker state created by this project
+clean: clean-makestate clean-docker
 
-clean-make-state:
-	rm $(RD_MAKE_STATE_DIR)/*
+# Clears the make state files
+clean-makestate:
+	rm -f $(RD_MAKE_STATE_DIR)/* $(INSTALLED_PLUGIN_ZIP)
 
+# Clears all the docker images, containers, network and volumes
 clean-docker:
 	docker-compose down --rmi all -v
 
-.PHONY: compose plugin rd-config rd-run-job update-web keys clean clean-make-state
+# Don't confuse these recipes with files
+.PHONY: compose plugin rd-config rd-run-job update-web keys clean clean-makestate

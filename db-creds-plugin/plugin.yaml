@@ -1,6 +1,4 @@
-# yaml plugin metadata
-
-name: Hello world with args
+name: Database credential management
 version: 1
 rundeckPluginVersion: 1.2
 author: Carlo Cabanilla
@@ -82,10 +80,3 @@ providers:
         name: role
         title: role
         description: 'Database role to grant the new user'
-
-  - name: HelloGo
-    service: RemoteScriptNodeStep
-    plugin-type: script
-    script-interpreter: /usr/bin/go run
-    script-file: helloworld.go
-    script-args: ${job.name}

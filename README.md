@@ -79,7 +79,8 @@ rd run -f --job 'Hello Test Job'
 
 Other directories that aren't containers:
 
-* helloworld-plugin - A sample custom Rundeck plugin
 * rundeck-project - Various Rundeck server configuration
+* rundeck-project/db-creds-plugin - A sample Rundeck plugin for managing database credentials
+* docs - A guide on how build a Rundeck plugin that's used here
 
 The containers are run by docker-compose as specified by the `docker-compose.yml` file. See the [docker-compose docs](https://docs.docker.com/compose/compose-file/) for reference.
