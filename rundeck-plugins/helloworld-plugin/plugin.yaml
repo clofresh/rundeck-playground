@@ -1,0 +1,26 @@
+name: Hello World
+version: 1
+rundeckPluginVersion: 1.2
+author: Carlo Cabanilla
+date: 2018-07-20
+url: http://rundeck.org/
+providers:
+  - name: HelloBash
+    service: RemoteScriptNodeStep
+    plugin-type: script
+    script-interpreter: /bin/bash
+    script-file: helloworld.sh
+    script-args: ${config.who_i_am} ${config.secret_secret}
+    config:
+      - name: who_i_am
+        type: Select
+        title: Who I Am
+        description: Provide a predefined list of options
+        values: machine, mannequin
+        default: machine
+      - name: secret_secret
+        type: String
+        title: My Secret
+        description: Securely pass this to the script
+        renderingOptions:
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"

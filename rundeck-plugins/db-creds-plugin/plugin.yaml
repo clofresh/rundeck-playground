@@ -5,13 +5,6 @@ author: Carlo Cabanilla
 date: 2018-07-20
 url: http://rundeck.org/
 providers:
-  - name: HelloBash
-    service: RemoteScriptNodeStep
-    plugin-type: script
-    script-interpreter: /bin/bash
-    script-file: helloworld.sh
-    script-args: ${job.name}
-
   - name: RestartApp
     service: RemoteScriptNodeStep
     plugin-type: script

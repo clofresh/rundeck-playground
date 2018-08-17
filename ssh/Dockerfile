@@ -1,10 +1,8 @@
 FROM ubuntu:xenial
 
 RUN apt-get update -qq && apt-get install -qqy openssh-server curl vim man
-RUN mkdir /var/run/sshd
-COPY ssh.password /ssh.password
-RUN echo "root:$(cat /ssh.password)" | chpasswd && rm /ssh.password
-RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN mkdir /var/run/sshd /root/.ssh && chmod 0600 /root/.ssh
+COPY authorized_keys /root/.ssh/
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd

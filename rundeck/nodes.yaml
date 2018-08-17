@@ -1,13 +1,7 @@
 web_1:
   hostname: web_1
-  username: root
   tags: web
-  ssh-authentication: password
-  ssh-password-storage-path: "keys/projects/${job.project}/nodes/${node.name}/ssh.password"
 
 web_2:
   hostname: web_2
-  username: root
   tags: web
-  ssh-authentication: password
-  ssh-password-storage-path: "keys/projects/${job.project}/nodes/${node.name}/ssh.password"
