@@ -31,7 +31,10 @@ $(INSTALLED_PLUGIN_ZIP): $(PLUGIN_FILES)
 # Installs the plugin into the Rundeck container's plugin directory
 plugin: $(RD_PLUGIN_STATE)
 $(RD_PLUGIN_STATE): $(INSTALLED_PLUGIN_ZIP)
-	docker cp $< $(RUNDECK_CONTAINER):$(RUNDECK_CONTAINER_LIBEXT)/
+	docker cp $< $(RUNDECK_CONTAINER):/tmp/
+	docker exec $(RUNDECK_CONTAINER) \
+		/bin/bash -c 'chown rundeck:rundeck /tmp/*-plugin.zip \
+			&& mv /tmp/*-plugin.zip $(RUNDECK_CONTAINER_LIBEXT)/'
 	touch $@
 
 # Creates the Rundeck project and sets its config properties
@@ -44,13 +47,12 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties
 	touch $@
 
 # Installs the Rundeck job configuration
-RD_JOB_STATES := $(RD_MAKE_STATE_DIR)/hello_test_job.job \
-				 $(RD_MAKE_STATE_DIR)/restart.job \
-				 $(RD_MAKE_STATE_DIR)/change_password.job \
-				 $(RD_MAKE_STATE_DIR)/create_db_user.job \
-				 $(RD_MAKE_STATE_DIR)/rotate_db_password.job
-$(RD_MAKE_STATE_DIR)/%.job: $(RD_PROJECT_CONFIG_DIR)/%.yaml $(RD_PROJECT_STATE)
-	$(RD) jobs load -f $<  --format yaml -p $(RD_PROJECT) && touch $@
+RD_JOBS_ALL := $(RD_MAKE_STATE_DIR)/all.yaml
+RD_JOB_FILES = $(shell find rundeck-project -name '*.yaml')
+
+$(RD_JOBS_ALL): $(RD_JOB_FILES) $(RD_PROJECT_STATE)
+	cat $^ > $@
+	$(RD) jobs load -f $@ --format yaml -p $(RD_PROJECT)
 
 # Installs the ssh password into the Rundeck Key Storage
 RD_KEYS_SSH := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)-ssh-passwords
@@ -76,7 +78,7 @@ RD_KEYS_STATES := $(RD_KEYS_SSH) $(RD_KEYS_DB)
 keys: $(RD_KEYS_STATES)
 
 # Installs all the Rundeck config, keys and plugin
-rd-config: $(RD_PLUGIN_STATE) $(RD_JOB_STATES) $(RD_KEYS_STATES) $(RD_KEYS_DB)
+rd-config: $(RD_PLUGIN_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES) $(RD_KEYS_DB)
 
 # Triggers a Rundeck job
 JOB ?= Hello Test Job
