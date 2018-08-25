@@ -1,0 +1,20 @@
+- name: DeleteDbUser
+  uuid: DeleteDbUser
+  nodefilters:
+    filter: web_1
+  options:
+  - label: Master db user version
+    name: master_user_version
+    required: false
+    value: '1'
+  - label: Web db user version
+    name: web_user_version
+    required: true
+  sequence:
+    commands:
+    - nodeStep: true
+      configuration:
+        master_db_user: master${option.master_user_version}
+        master_db_password: keys/projects/hello-project/db/master${option.master_user_version}
+        user: web${option.web_user_version}
+      type: DeleteDBUser

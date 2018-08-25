@@ -1,0 +1,13 @@
+- name: RestartApp
+  uuid: RestartApp
+  nodefilters:
+    filter: web_.*
+  sequence:
+    commands:
+    - configuration:
+        health_url: http://localhost:8080
+        process: python3
+      nodeStep: true
+      type: RestartApp
+    keepgoing: false
+    strategy: node-first

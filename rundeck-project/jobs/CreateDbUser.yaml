@@ -1,28 +1,15 @@
-- defaultTab: summary
-  description: ''
-  executionEnabled: true
-  id: daeb3230-dcc7-4b82-97f4-f744f050bffe
-  loglevel: INFO
-  name: create_db_user
-  nodeFilterEditable: false
+- name: CreateDbUser
+  uuid: CreateDbUser
   nodefilters:
-    dispatch:
-      excludePrecedence: true
-      keepgoing: false
-      rankOrder: ascending
-      successOnEmptyNodeFilter: false
-      threadcount: '1'
     filter: web_1
-  nodesSelectedByDefault: true
-  scheduleEnabled: true
   options:
   - label: Master db user version
     name: master_user_version
     required: false
-    default: 1
+    value: '1'
   - label: Web db user version
     name: web_user_version
-    default: 2
+    required: true
   sequence:
     commands:
     - nodeStep: true
@@ -35,4 +22,3 @@
       type: CreateDBUser
     keepgoing: false
     strategy: node-first
-  uuid: daeb3230-dcc7-4b82-97f4-f744f050bffe

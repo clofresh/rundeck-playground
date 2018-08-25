@@ -1,5 +1,6 @@
 db:
+  dbname: web
   host: database
   port: 5432
-  user: web
-  password: sup3r!S3cr3
+  user: web1
+  password: secretpassword

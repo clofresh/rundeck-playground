@@ -25,7 +25,7 @@ providers:
   - name: UpdateDBCredentials
     service: RemoteScriptNodeStep
     plugin-type: script
-    script-interpreter: /usr/bin/python3
+    script-interpreter: /usr/local/bin/python3
     script-file: change_password.py
     script-args: /etc/web.yaml ${config.user} ${config.password}
     config:
@@ -73,3 +73,27 @@ providers:
         name: role
         title: role
         description: 'Database role to grant the new user'
+
+  - name: DeleteDBUser
+    service: RemoteScriptNodeStep
+    plugin-type: script
+    script-interpreter: /bin/bash
+    script-file: delete-db-user.sh
+    script-args: ${config.master_db_user} ${config.master_db_password} ${config.user}
+    config:
+      - type: String
+        name: master_db_user
+        title: master_db_user
+        description: 'master db user'
+        default: master1
+      - type: String
+        name: master_db_password
+        title: master_db_password
+        description: 'master db user password'
+        default: keys/projects/hello-project/db/master1
+        renderingOptions:
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+      - type: String
+        name: user
+        title: user
+        description: 'db user to delete'

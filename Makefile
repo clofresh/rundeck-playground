@@ -51,7 +51,7 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties
 
 # Installs the Rundeck job configuration
 RD_JOBS_ALL := $(RD_MAKE_STATE_DIR)/all.yaml
-RD_JOB_FILES = $(shell find rundeck-project -name '*.yaml')
+RD_JOB_FILES = $(shell find $(RD_PROJECT_CONFIG_DIR)/jobs -name '*.yaml' -type f)
 
 $(RD_JOBS_ALL): $(RD_JOB_FILES) $(RD_PROJECT_STATE)
 	cat $^ > $@
@@ -64,8 +64,8 @@ RD_KEYS_STATES = $(shell cd $(RD_KEYS_DIR) && \
 					   echo $(RD_MAKE_STATE_DIR)$${f/./}.key; \
 					done)
 $(RD_MAKE_STATE_DIR)/%.key: $(RD_KEYS_DIR)/%
-	$(RD) keys update -t password -f $< --path $* \
-		|| $(RD) keys create -t password -f $< --path $*
+	$(RD) keys create -t password -f $< --path $* \
+		|| $(RD) keys update -t password -f $< --path $*
 	mkdir -p $$(dirname $@) && touch $@
 
 # Installs the secrets into the Rundeck Key Storage
@@ -75,9 +75,10 @@ keys: $(RD_KEYS_STATES)
 rd-config: $(RD_PLUGIN_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)
 
 # Triggers a Rundeck job
-JOB ?= Hello Test Job
+JOB ?= HelloWorld
+JOB_OPTIONS ?=
 rd-run-job: rd-config
-	$(RD) run -p $(RD_PROJECT) -f --job '$(JOB)'
+	$(RD) run -p $(RD_PROJECT) -f --job '$(JOB)' -- $(JOB_OPTIONS)
 
 # Updates the web.py file in the running containers to simulate a deployment
 update-web:

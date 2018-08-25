@@ -1,6 +1,6 @@
-FROM ubuntu:xenial
+FROM python:3-stretch
 
-RUN apt-get update -qq && apt-get install -qqy openssh-server curl vim man
+RUN apt-get update -qq && apt-get install -qqy openssh-server vim-nox
 RUN mkdir /var/run/sshd /root/.ssh && chmod 0600 /root/.ssh
 COPY authorized_keys /root/.ssh/
 

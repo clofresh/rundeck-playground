@@ -31,7 +31,7 @@ To configure the Rundeck server with the example project, jobs, keys and hello w
 make rd-config
 ```
 
-To kick off the hello work job:
+To kick off the hello world job:
 
 ```
 make rd-run-job
@@ -56,7 +56,7 @@ docker run \
     --mount type=bind,source="$(pwd)",target=/root \
     -e RD_PROJECT=hello-project \
     playground-rundeck-cli \
-    run -f --job 'Hello Test Job'
+    run -f --job 'HelloWorld'
 ```
 
 To avoid all that typing, you can create an alias:
@@ -64,7 +64,7 @@ To avoid all that typing, you can create an alias:
 ```
 alias rd='docker run --network rundeck-playground_default --mount type=bind,source="$(pwd)",target=/root -e RD_PROJECT=hello-project playground-rundeck-cli '
 
-rd run -f --job 'Hello Test Job'
+rd run -f --job 'HelloWorld'
 ```
 
 ## Directory structure
@@ -80,7 +80,7 @@ rd run -f --job 'Hello Test Job'
 Other directories that aren't containers:
 
 * rundeck-project - Various Rundeck server configuration
-* rundeck-project/db-creds-plugin - A sample Rundeck plugin for managing database credentials
+* rundeck-plugins - Sample Rundeck plugins. Any new directories will get deployed as Rundeck plugins
 * docs - A guide on how build a Rundeck plugin that's used here
 
 The containers are run by docker-compose as specified by the `docker-compose.yml` file. See the [docker-compose docs](https://docs.docker.com/compose/compose-file/) for reference.

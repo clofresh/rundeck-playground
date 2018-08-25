@@ -6,4 +6,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE ROLE web INHERIT;
     CREATE DATABASE web;
     GRANT ALL PRIVILEGES ON DATABASE web TO web;
+
+    CREATE USER web1 WITH ENCRYPTED PASSWORD 'secretpassword';
+    GRANT web to web1;
 EOSQL

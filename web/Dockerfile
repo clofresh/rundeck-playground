@@ -1,7 +1,7 @@
 FROM playground-ssh
 
-RUN apt-get update -qq && apt-get install -qqy python3 postgresql-client python3-pip
-RUN pip3 install pyyaml pyaml
+RUN apt-get update -qq && apt-get install -qqy postgresql-client
+RUN pip3 install pyyaml pyaml psycopg2-binary
 COPY web.py /usr/share/
 COPY web.yaml /etc/
 RUN chmod 644 /etc/web.yaml
