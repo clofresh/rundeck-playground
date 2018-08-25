@@ -35,7 +35,7 @@ compose: $(PLUGINS) $(SSH_AUTHORIZED_KEYS)
 plugins: $(RD_PLUGIN_STATE)
 $(RD_MAKE_STATE_DIR)/%.plugin: $(LOCAL_LIBEXT_DIR)/%.zip
 	docker cp $< $(RUNDECK_CONTAINER):/tmp/
-	docker exec $(RUNDECK_CONTAINER) \
+	docker exec -u root $(RUNDECK_CONTAINER) \
 		/bin/bash -c 'chown rundeck:rundeck /tmp/$$(basename $<) \
 			&& mv /tmp/$$(basename $<) $(RUNDECK_CONTAINER_LIBEXT)/'
 	touch $@
