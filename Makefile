@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 
+default: compose
+
 # Make
 RD_MAKE_STATE_DIR := .makestate
 RUNDECK_IMAGE_DIR := rundeck
@@ -103,7 +105,7 @@ clean-docker:
 	docker-compose down --rmi all -v
 
 # Don't confuse these recipes with files
-.PHONY: compose plugin rd-config rd-run-job update-web keys clean clean-makestate clean-plugins clean-docker
+.PHONY: default compose plugin rd-config rd-run-job update-web keys clean clean-makestate clean-plugins clean-docker
 
 # Some make hackery to create a general rule for compiling plugin zips in PLUGINS_SRC_DIR
 .SECONDEXPANSION:
