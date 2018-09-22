@@ -1,0 +1,22 @@
+name: deb builder
+version: 1
+rundeckPluginVersion: 1.2
+author: Carlo Cabanilla
+date: 2018-09-21
+url: http://rundeck.org/
+providers:
+  - name: BuildDeb
+    service: RemoteScriptNodeStep
+    plugin-type: script
+    script-interpreter: /bin/bash
+    script-file: build.sh
+    script-args: ${config.aws_access_key_id} ${config.aws_secret_access_key}
+    config:
+      - name: aws_access_key_id
+        type: String
+        renderingOptions:
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"
+      - name: aws_secret_access_key
+        type: String
+        renderingOptions:
+          valueConversion: "STORAGE_PATH_AUTOMATIC_READ"

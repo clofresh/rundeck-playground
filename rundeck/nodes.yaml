@@ -5,3 +5,7 @@ web_1:
 web_2:
   hostname: web_2
   tags: web
+
+fpm:
+  hostname: fpm
+  tags: fpm

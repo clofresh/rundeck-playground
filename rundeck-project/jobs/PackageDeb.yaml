@@ -1,0 +1,35 @@
+- uuid: PackageDeb
+  name: PackageDeb
+  nodefilters:
+    filter: fpm
+  nodesSelectedByDefault: true
+  scheduleEnabled: true
+  sequence:
+    pluginConfig:
+      LogFilter:
+      - type: key-value-data
+        config:
+          logData: 'false'
+          regex: ^RUNDECK:DATA:(.+?)\s*=\s*(.+)$
+    commands:
+    - type: BuildDeb
+      nodeStep: true
+      configuration:
+        aws_access_key_id: keys/projects/hello-project/aws/access-key-id
+        aws_secret_access_key: keys/projects/hello-project/aws/secret-access-key
+    - type: log-data-step
+      nodeStep: false
+      configuration:
+        debugOnly: 'true'
+    - type: export-var
+      nodeStep: false
+      configuration:
+        export: DOWNLOAD_URL
+        group: export
+        value: ${data.DOWNLOAD_URL@fpm}    
+    - type: export-var
+      nodeStep: false
+      configuration:
+        export: DEB_FILE
+        group: export
+        value: ${data.DEB_FILE@fpm}

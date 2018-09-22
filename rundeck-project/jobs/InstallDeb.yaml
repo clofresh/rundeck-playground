@@ -1,0 +1,20 @@
+- name: InstallDeb
+  nodefilters:
+    filter: web_.*
+  sequence:
+    pluginConfig:
+      LogFilter:
+      - type: key-value-data
+        config:
+          logData: 'false'
+          regex: ^RUNDECK:DATA:(.+?)\s*=\s*(.+)$
+    commands:
+    - jobref:
+        uuid: PackageDeb
+    - args: ${export.DOWNLOAD_URL} ${export.DEB_FILE}
+      script: |
+        #!/bin/bash -e
+
+        cd $(mktemp -d)
+        curl -sL "$1" > $2
+        dpkg -i "$2"

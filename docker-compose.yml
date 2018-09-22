@@ -43,6 +43,10 @@ services:
     volumes:
       - rundeck-data:/home/rundeck/server/data
 
+  fpm:
+    build: fpm
+    image: playground-fpm
+
 volumes:
   rundeck-data:
   db-data:
