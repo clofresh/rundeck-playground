@@ -1,4 +1,3 @@
 .makestate
 rundeck/libext
 ssh/authorized_keys
-rundeck-project/key-storage/keys/projects/hello-project/aws/*
