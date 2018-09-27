@@ -13,6 +13,12 @@
           bgcolor: yellow
           mode: bold
           regex: ^INFO\s*-\s*(.*)$
+      - type: quiet-output
+        config:
+          loglevel: debug
+          matchLoglevel: all
+          quietMatch: 'true'
+          regex: AWS_SECRET_ACCESS_KEY
     commands:
     - jobref:
         uuid: PackageDeb
