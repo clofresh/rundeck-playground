@@ -9,8 +9,13 @@
       LogFilter:
       - type: key-value-data
         config:
-          logData: 'false'
+          logData: 'true'
           regex: ^RUNDECK:DATA:(.+?)\s*=\s*(.+)$
+      - type: highlight-output
+        config:
+          bgcolor: yellow
+          mode: bold
+          regex: ^INFO\s*-\s*(.*)$
     commands:
     - type: BuildDeb
       nodeStep: true

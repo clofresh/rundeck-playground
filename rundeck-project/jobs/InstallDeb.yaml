@@ -8,13 +8,28 @@
         config:
           logData: 'false'
           regex: ^RUNDECK:DATA:(.+?)\s*=\s*(.+)$
+      - type: highlight-output
+        config:
+          bgcolor: yellow
+          mode: bold
+          regex: ^INFO\s*-\s*(.*)$
     commands:
     - jobref:
         uuid: PackageDeb
     - args: ${export.DOWNLOAD_URL} ${export.DEB_FILE}
       script: |
-        #!/bin/bash -e
+        #!/bin/bash -xe
 
-        cd $(mktemp -d)
+        WORKING_DIR=$(mktemp -d)
+        function cleanup {
+          if [ ! -z $WORKING_DIR ]; then
+            echo "INFO - Deleting $WORKING_DIR"
+            rm -rf "$WORKING_DIR"
+          fi
+        }
+        trap cleanup EXIT
+        echo "INFO - Downloading $2 to $WORKING_DIR"
+        cd $WORKING_DIR
         curl -sL "$1" > $2
+        echo "INFO - Installing $2"
         dpkg -i "$2"

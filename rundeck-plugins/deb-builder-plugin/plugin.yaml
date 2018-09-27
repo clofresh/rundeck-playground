@@ -8,7 +8,7 @@ providers:
   - name: BuildDeb
     service: RemoteScriptNodeStep
     plugin-type: script
-    script-interpreter: /bin/bash
+    script-interpreter: /bin/bash -xe
     script-file: build.sh
     script-args: ${config.aws_access_key_id} ${config.aws_secret_access_key}
     config:
