@@ -1,8 +1,8 @@
-name: Hello World
-version: 1
+name: helloworld
+version: 5
 rundeckPluginVersion: 1.2
 author: Carlo Cabanilla
-date: 2018-07-20
+date: 2018-07-20T00:00:00Z
 url: http://rundeck.org/
 providers:
   - name: HelloBash

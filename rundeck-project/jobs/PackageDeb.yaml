@@ -37,7 +37,7 @@
       configuration:
         export: DOWNLOAD_URL
         group: export
-        value: ${data.DOWNLOAD_URL@fpm}    
+        value: ${data.DOWNLOAD_URL@fpm}
     - type: export-var
       nodeStep: false
       configuration:

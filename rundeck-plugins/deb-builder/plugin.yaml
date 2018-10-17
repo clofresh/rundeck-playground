@@ -1,8 +1,8 @@
 name: deb builder
-version: 1
+version: 2
 rundeckPluginVersion: 1.2
 author: Carlo Cabanilla
-date: 2018-09-21
+date: 2018-09-21T00:00:00Z
 url: http://rundeck.org/
 providers:
   - name: BuildDeb

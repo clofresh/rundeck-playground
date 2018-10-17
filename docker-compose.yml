@@ -42,6 +42,7 @@ services:
       - "4440:4440"
     volumes:
       - rundeck-data:/home/rundeck/server/data
+    command: -Drundeck.features.repository.enabled=true
 
   # packager host
   fpm:

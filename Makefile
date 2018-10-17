@@ -12,12 +12,12 @@ NETWORK_NAME := $(CONTAINER_PREFIX)default
 NUM_WEB := 2
 
 # Command to call the Rundeck client from outside of the container
-RD := docker run --network $(NETWORK_NAME) --mount type=bind,source="$$(pwd)",target=/root playground-rundeck-cli
+RD := docker run --rm --network $(NETWORK_NAME) --mount type=bind,source="$$(pwd)",target=/root playground-rundeck-cli
 
 # Plugins
 PLUGINS_SRC_DIR := rundeck-plugins
-LOCAL_LIBEXT_DIR := $(RUNDECK_IMAGE_DIR)/libext
-PLUGINS = $(shell for p in $$(ls $(PLUGINS_SRC_DIR)); do echo "$(LOCAL_LIBEXT_DIR)/$${p}.zip"; done)
+PLUGIN_OUTPUT_DIR := $(RD_MAKE_STATE_DIR)/plugins
+PLUGINS = $(shell for p in $$(ls $(PLUGINS_SRC_DIR)); do echo "$(PLUGIN_OUTPUT_DIR)/$${p}.zip"; done)
 RD_PLUGIN_STATE = $(shell for p in $$(ls $(PLUGINS_SRC_DIR)); do echo "$(RD_MAKE_STATE_DIR)/$${p}.plugin"; done)
 
 # Rundeck container
@@ -30,17 +30,21 @@ $(SSH_AUTHORIZED_KEYS): $(RUNDECK_IMAGE_DIR)/ssh/rundeck-playground.pub
 	cp $< $@
 
 # Runs docker-compose to spin up the full environment
-compose: $(PLUGINS) $(SSH_AUTHORIZED_KEYS)
+compose: $(SSH_AUTHORIZED_KEYS)
 	docker-compose up --build
 
 # Installs the plugins into the Rundeck container's plugin directory
-plugins: $(RD_PLUGIN_STATE)
-$(RD_MAKE_STATE_DIR)/%.plugin: $(LOCAL_LIBEXT_DIR)/%.zip
-	docker cp $< $(RUNDECK_CONTAINER):/tmp/
-	docker exec -u root $(RUNDECK_CONTAINER) \
-		/bin/bash -c 'chown rundeck:rundeck /tmp/$$(basename $<) \
-			&& mv /tmp/$$(basename $<) $(RUNDECK_CONTAINER_LIBEXT)/'
-	touch $@
+plugins: $(RD_MAKE_STATE_DIR)/install-plugins
+
+RD_PLUGIN_INSTALLED_STATE := $(RD_MAKE_STATE_DIR)/install-plugins
+
+$(RD_PLUGIN_INSTALLED_STATE): $(RD_PLUGIN_STATE)
+	for id in $$($(RD) plugins list | grep 'not installed' | cut -d ' ' -f 1); do \
+		$(RD) plugins install --id "$$id"; \
+	done && touch $@
+
+$(RD_MAKE_STATE_DIR)/%.plugin: $(PLUGIN_OUTPUT_DIR)/%.zip
+	$(RD) plugins upload -f "$<" &&	touch $@ && rm -f $(RD_PLUGIN_INSTALLED_STATE)
 
 # Creates the Rundeck project and sets its config properties
 RD_PROJECT := hello-project
@@ -48,8 +52,7 @@ RD_PROJECT_CONFIG_DIR := rundeck-project
 RD_PROJECT_STATE := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)
 $(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties
 	$(RD) projects create -p $(RD_PROJECT) || true
-	$(RD) projects configure update  -p $(RD_PROJECT) --file $<
-	touch $@
+	$(RD) projects configure update  -p $(RD_PROJECT) --file $< && touch $@
 
 # Installs the Rundeck job configuration
 RD_JOBS_ALL := $(RD_MAKE_STATE_DIR)/all.yaml
@@ -74,7 +77,7 @@ $(RD_MAKE_STATE_DIR)/%.key: $(RD_KEYS_DIR)/%
 keys: $(RD_KEYS_STATES)
 
 # Installs all the Rundeck config, keys and plugin
-rd-config: $(RD_PLUGIN_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)
+rd-config: $(RD_PLUGIN_INSTALLED_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)
 
 # Triggers a Rundeck job
 JOB ?= HelloWorld
@@ -98,7 +101,7 @@ clean-makestate:
 
 # Clears the zipped plugins
 clean-plugins:
-	rm -f $(RUNDECK_IMAGE_DIR)/libext/*
+	rm -f $(RD_PLUGIN_INSTALLED_STATE) $(RD_PLUGIN_STATE)
 
 # Clears all the docker images, containers, network and volumes
 clean-docker:
@@ -109,5 +112,5 @@ clean-docker:
 
 # Some make hackery to create a general rule for compiling plugin zips in PLUGINS_SRC_DIR
 .SECONDEXPANSION:
-$(LOCAL_LIBEXT_DIR)/%-plugin.zip: $$(shell find $(PLUGINS_SRC_DIR)/%-plugin/ -type f)
-	cd $(PLUGINS_SRC_DIR) && zip -r ../$@ $*-plugin
+$(PLUGIN_OUTPUT_DIR)/%.zip: $$(shell find $(PLUGINS_SRC_DIR)/%/ -type f)
+	mkdir -p $$(dirname $@) && cd $(PLUGINS_SRC_DIR) && zip -r ../$@ $*
