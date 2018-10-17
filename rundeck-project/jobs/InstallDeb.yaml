@@ -1,4 +1,7 @@
 - name: InstallDeb
+  uuid: InstallDeb
+  group: Install Package
+  defaultTab: output
   nodefilters:
     filter: web_.*
   sequence:

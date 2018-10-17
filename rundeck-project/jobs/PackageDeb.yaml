@@ -1,5 +1,6 @@
 - uuid: PackageDeb
   name: PackageDeb
+  group: Install Package
   nodefilters:
     filter: fpm
   nodesSelectedByDefault: true

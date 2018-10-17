@@ -1,5 +1,6 @@
 - name: CreateDbUser
   uuid: CreateDbUser
+  group: DB Credential Rotation
   nodefilters:
     filter: web_1
   options:

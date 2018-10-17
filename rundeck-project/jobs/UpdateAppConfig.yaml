@@ -1,5 +1,6 @@
 - name: UpdateAppConfig
   uuid: UpdateAppConfig
+  group: DB Credential Rotation
   nodefilters:
     filter: web_.*
   options:
