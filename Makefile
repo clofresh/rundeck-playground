@@ -39,12 +39,19 @@ plugins: $(RD_MAKE_STATE_DIR)/install-plugins
 RD_PLUGIN_INSTALLED_STATE := $(RD_MAKE_STATE_DIR)/install-plugins
 
 $(RD_PLUGIN_INSTALLED_STATE): $(RD_PLUGIN_STATE)
-	for id in $$($(RD) plugins list | grep 'not installed' | cut -d ' ' -f 1); do \
+	for id in $$($(RD) plugins list | cut -d ' ' -f 1); do \
 		$(RD) plugins install --id "$$id"; \
 	done && touch $@
 
 $(RD_MAKE_STATE_DIR)/%.plugin: $(PLUGIN_OUTPUT_DIR)/%.zip
-	$(RD) plugins upload -f "$<" &&	touch $@ && rm -f $(RD_PLUGIN_INSTALLED_STATE)
+	NEW_VERSION="$$(unzip -p "$<" | grep ^version | cut -d : -f 2)"; \
+	OLD_VERSION="$$(cat "$@" 2>/dev/null || echo '0')"; \
+	if [[ $$NEW_VERSION -eq $$OLD_VERSION ]]; then \
+		echo "Version already exists for $<"; \
+		exit 1; \
+	else \
+		$(RD) plugins upload -f "$<" &&	echo "$$NEW_VERSION" > $@ && rm -f $(RD_PLUGIN_INSTALLED_STATE); \
+	fi
 
 # Creates the Rundeck project and sets its config properties
 RD_PROJECT := hello-project
@@ -106,6 +113,13 @@ clean-plugins:
 # Clears all the docker images, containers, network and volumes
 clean-docker:
 	docker-compose down --rmi all -v
+
+clean-rundeck:
+	docker-compose stop rundeck || true
+	docker rm rundeck-playground_rundeck_1 || true
+	docker volume rm rundeck-playground_rundeck-data || true
+	docker-compose up -d rundeck
+	make clean-makestate
 
 # Don't confuse these recipes with files
 .PHONY: default compose plugin rd-config rd-run-job update-web keys clean clean-makestate clean-plugins clean-docker
