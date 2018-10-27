@@ -9,8 +9,19 @@ services:
 
   # cli tool
   rundeck-cli:
-    build: rundeck-cli
+    build:
+      context: rundeck-cli
+      args:
+        COMMIT: 6aeb65b9085c1d5811163a25c15fe278d34fd846
     image: playground-rundeck-cli
+  
+  # plugin bootstrap tool
+  rundeck-plugin-bootstrap:
+    build:
+      context: rundeck-plugin-bootstrap
+      args:
+        COMMIT: 3b5783ec795386d70d52f30f5581466d76aa10b6
+    image: playground-rundeck-plugin-bootstrap
 
   # backend
   database:

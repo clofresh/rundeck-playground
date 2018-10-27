@@ -12,7 +12,7 @@ NETWORK_NAME := $(CONTAINER_PREFIX)default
 NUM_WEB := 2
 
 # Command to call the Rundeck client from outside of the container
-RD := docker run --rm --network $(NETWORK_NAME) --mount type=bind,source="$$(pwd)",target=/root playground-rundeck-cli
+RD := tools/rd-0.1.0-SNAPSHOT/bin/rd
 
 # Plugins
 PLUGINS_SRC_DIR := rundeck-plugins
@@ -38,12 +38,12 @@ plugins: $(RD_MAKE_STATE_DIR)/install-plugins
 
 RD_PLUGIN_INSTALLED_STATE := $(RD_MAKE_STATE_DIR)/install-plugins
 
-$(RD_PLUGIN_INSTALLED_STATE): $(RD_PLUGIN_STATE)
+$(RD_PLUGIN_INSTALLED_STATE): $(RD_PLUGIN_STATE) $(RD)
 	for id in $$($(RD) plugins list | cut -d ' ' -f 1); do \
 		$(RD) plugins install --id "$$id"; \
 	done && touch $@
 
-$(RD_MAKE_STATE_DIR)/%.plugin: $(PLUGIN_OUTPUT_DIR)/%.zip
+$(RD_MAKE_STATE_DIR)/%.plugin: $(PLUGIN_OUTPUT_DIR)/%.zip $(RD)
 	NEW_VERSION="$$(unzip -p "$<" | grep ^version | cut -d : -f 2)"; \
 	OLD_VERSION="$$(cat "$@" 2>/dev/null || echo '0')"; \
 	if [[ $$NEW_VERSION -eq $$OLD_VERSION ]]; then \
@@ -57,7 +57,7 @@ $(RD_MAKE_STATE_DIR)/%.plugin: $(PLUGIN_OUTPUT_DIR)/%.zip
 RD_PROJECT := hello-project
 RD_PROJECT_CONFIG_DIR := rundeck-project
 RD_PROJECT_STATE := $(RD_MAKE_STATE_DIR)/$(RD_PROJECT)
-$(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties
+$(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties $(RD)
 	$(RD) projects create -p $(RD_PROJECT) || true
 	$(RD) projects configure update  -p $(RD_PROJECT) --file $< && touch $@
 
@@ -65,8 +65,8 @@ $(RD_PROJECT_STATE): $(RD_PROJECT_CONFIG_DIR)/project.properties
 RD_JOBS_ALL := $(RD_MAKE_STATE_DIR)/all.yaml
 RD_JOB_FILES = $(shell find $(RD_PROJECT_CONFIG_DIR)/jobs -name '*.yaml' -type f)
 
-$(RD_JOBS_ALL): $(RD_JOB_FILES) $(RD_PROJECT_STATE)
-	cat $^ > $@
+$(RD_JOBS_ALL): $(RD_JOB_FILES) $(RD_PROJECT_STATE) $(RD)
+	cat $(RD_JOB_FILES) $(RD_PROJECT_STATE) > $@
 	$(RD) jobs load -f $@ --format yaml -p $(RD_PROJECT)
 
 # Creates or updates the keys into Key Storage
@@ -75,7 +75,7 @@ RD_KEYS_STATES = $(shell cd $(RD_KEYS_DIR) && \
 					for f in $$(find . -type f); do \
 					   echo $(RD_MAKE_STATE_DIR)$${f/./}.key; \
 					done)
-$(RD_MAKE_STATE_DIR)/%.key: $(RD_KEYS_DIR)/%
+$(RD_MAKE_STATE_DIR)/%.key: $(RD_KEYS_DIR)/% $(RD)
 	$(RD) keys create -t password -f $< --path $* \
 		|| $(RD) keys update -t password -f $< --path $*
 	mkdir -p $$(dirname $@) && touch $@
@@ -83,13 +83,25 @@ $(RD_MAKE_STATE_DIR)/%.key: $(RD_KEYS_DIR)/%
 # Installs the secrets into the Rundeck Key Storage
 keys: $(RD_KEYS_STATES)
 
+# Tools
+PLUGIN_BOOTSTRAP := tools/rundeck-plugin-bootstrap-0.1.0-SNAPSHOT/bin/rundeck-plugin-bootstrap
+tools: $(RD) $(PLUGIN_BOOTSTRAP)
+
+$(PLUGIN_BOOTSTRAP):
+	docker-compose up --build rundeck-plugin-bootstrap
+	docker cp rundeck-playground_rundeck-plugin-bootstrap_1:/root/tools/ .
+
+$(RD):
+	docker-compose up --build rundeck-cli
+	docker cp rundeck-playground_rundeck-cli_1:/root/tools/ .
+
 # Installs all the Rundeck config, keys and plugin
 rd-config: $(RD_PLUGIN_INSTALLED_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)
 
 # Triggers a Rundeck job
 JOB ?= HelloWorld
 JOB_OPTIONS ?=
-rd-run-job: rd-config
+rd-run-job: rd-config $(RD)
 	$(RD) run -p $(RD_PROJECT) -f --job '$(JOB)' -- $(JOB_OPTIONS)
 
 # Updates the web.py file in the running containers to simulate a deployment
@@ -100,7 +112,7 @@ update-web:
 	done
 
 # Clears all file and docker state created by this project
-clean: clean-makestate clean-plugins clean-docker
+clean: clean-makestate clean-plugins clean-docker clean-tools
 
 # Clears the make state files
 clean-makestate:
@@ -121,8 +133,11 @@ clean-rundeck:
 	docker-compose up -d rundeck
 	make clean-makestate
 
+clean-tools:
+	rm -rf tools/*
+
 # Don't confuse these recipes with files
-.PHONY: default compose plugin rd-config rd-run-job update-web keys clean clean-makestate clean-plugins clean-docker
+.PHONY: default compose plugin rd-config rd-run-job update-web keys clean clean-makestate clean-plugins clean-docker clean-rundeck clean-tools tools
 
 # Some make hackery to create a general rule for compiling plugin zips in PLUGINS_SRC_DIR
 .SECONDEXPANSION:
