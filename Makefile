@@ -14,6 +14,13 @@ NUM_WEB := 2
 # Command to call the Rundeck client from outside of the container
 RD := tools/rd-0.1.0-SNAPSHOT/bin/rd
 
+# RD env vars
+export RD_URL ?= http://127.0.0.1:4440
+export RD_BYPASS_URL ?= http://127.0.0.1:4440
+export RD_USER ?= admin
+export RD_PASSWORD ?= admin
+export RD_ENABLE_PLUGINS ?= true
+
 # Plugins
 PLUGINS_SRC_DIR := rundeck-plugins
 PLUGIN_OUTPUT_DIR := $(RD_MAKE_STATE_DIR)/plugins
@@ -94,6 +101,15 @@ $(PLUGIN_BOOTSTRAP):
 $(RD):
 	docker-compose up --build rundeck-cli
 	docker cp rundeck-playground_rundeck-cli_1:/root/tools/ .
+
+env:
+	@echo 'export RD_URL="$(RD_URL)";'
+	@echo 'export RD_BYPASS_URL="$(RD_BYPASS_URL)";'
+	@echo 'export RD_USER="$(RD_USER)";'
+	@echo 'export RD_PASSWORD="$(RD_PASSWORD)";'
+	@echo 'export RD_ENABLE_PLUGINS="$(RD_ENABLE_PLUGINS)";'
+	@echo 'alias rd="$(PWD)/$(RD)";'
+	@echo 'alias rundeck-plugin-bootstrap="$(PWD)/$(PLUGIN_BOOTSTRAP)";'
 
 # Installs all the Rundeck config, keys and plugin
 rd-config: $(RD_PLUGIN_INSTALLED_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)

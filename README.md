@@ -48,23 +48,16 @@ You should see something like this:
 
 You might have to wait a few seconds for the Rundeck server to finish booting up before running rd-run-job.
 
-You can also interact with the Rundeck server using the `rd` command line tool. Since both the server and the client are dockerized, you'll need to run it with a special command:
+You can also interact with the Rundeck server using the `rd` command line tool. To install it locally:
 
 ```
-docker run \
-    --rm \
-    --network rundeck-playground_default \
-    --mount type=bind,source="$(pwd)",target=/root \
-    -e RD_PROJECT=hello-project \
-    playground-rundeck-cli \
-    run -f --job 'HelloWorld'
+make tools
+eval $(make env)
 ```
 
-To avoid all that typing, you can create an alias:
+To use:
 
 ```
-alias rd='docker run --rm --network rundeck-playground_default --mount type=bind,source="$(pwd)",target=/root -e RD_PROJECT=hello-project playground-rundeck-cli '
-
 rd run -f --job 'HelloWorld'
 ```
 
