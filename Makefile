@@ -28,8 +28,6 @@ PLUGINS = $(shell for p in $$(ls $(PLUGINS_SRC_DIR)); do echo "$(PLUGIN_OUTPUT_D
 RD_PLUGIN_STATE = $(shell for p in $$(ls $(PLUGINS_SRC_DIR)); do echo "$(RD_MAKE_STATE_DIR)/$${p}.plugin"; done)
 
 # Rundeck container
-RUNDECK_CONTAINER := $(CONTAINER_PREFIX)rundeck_1
-RUNDECK_CONTAINER_LIBEXT := /home/rundeck/libext
 SSH_AUTHORIZED_KEYS := ssh/authorized_keys
 
 # Makes sure the ssh containers authorize the Rundeck server's public key
@@ -112,20 +110,13 @@ env:
 	@echo 'alias rundeck-plugin-bootstrap="$(PWD)/$(PLUGIN_BOOTSTRAP)";'
 
 # Installs all the Rundeck config, keys and plugin
-rd-config: $(RD_PLUGIN_INSTALLED_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)
+rd-config: tools $(RD_PLUGIN_INSTALLED_STATE) $(RD_JOBS_ALL) $(RD_KEYS_STATES)
 
 # Triggers a Rundeck job
 JOB ?= HelloWorld
 JOB_OPTIONS ?=
 rd-run-job: rd-config $(RD)
 	$(RD) run -p $(RD_PROJECT) -f --job '$(JOB)' -- $(JOB_OPTIONS)
-
-# Updates the web.py file in the running containers to simulate a deployment
-update-web:
-	for i in $(shell seq 1 $(NUM_WEB)); do \
-		container=$(CONTAINER_PREFIX)web_$${i}_1; \
-		docker cp web/web.py $${container}:/usr/share/web.py; \
-	done
 
 # Clears all file and docker state created by this project
 clean: clean-makestate clean-plugins clean-docker clean-tools
@@ -143,8 +134,7 @@ clean-docker:
 	docker-compose down --rmi all -v
 
 clean-rundeck:
-	docker-compose stop rundeck || true
-	docker rm rundeck-playground_rundeck_1 || true
+	docker-compose rm -sfv rundeck || true
 	docker volume rm rundeck-playground_rundeck-data || true
 	docker-compose up -d rundeck
 	make clean-makestate

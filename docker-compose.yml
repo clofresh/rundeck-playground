@@ -9,6 +9,7 @@ services:
 
   # cli tool
   rundeck-cli:
+    container_name: rundeck-playground_rundeck-cli_1
     build:
       context: rundeck-cli
       args:
@@ -17,6 +18,7 @@ services:
   
   # plugin bootstrap tool
   rundeck-plugin-bootstrap:
+    container_name: rundeck-playground_rundeck-plugin-bootstrap_1
     build:
       context: rundeck-plugin-bootstrap
       args:
