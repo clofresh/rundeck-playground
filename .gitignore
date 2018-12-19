@@ -2,3 +2,11 @@
 rundeck/libext
 ssh/authorized_keys
 tools
+
+.gradle
+.idea
+.project
+/rundeck-plugins/*/build
+/rundeck-plugins/*/gradle
+/rundeck-plugins/*/gradlew
+/rundeck-plugins/*/gradlew.bat

@@ -13,7 +13,7 @@ services:
     build:
       context: rundeck-cli
       args:
-        COMMIT: 6aeb65b9085c1d5811163a25c15fe278d34fd846
+        COMMIT: f20b69dc8e43462bf71a78dcb549997c86a51995
     image: playground-rundeck-cli
   
   # plugin bootstrap tool
@@ -22,7 +22,7 @@ services:
     build:
       context: rundeck-plugin-bootstrap
       args:
-        COMMIT: 3b5783ec795386d70d52f30f5581466d76aa10b6
+        COMMIT: c3ebc59c35eb824d359c04370127aff4e64e6d70
     image: playground-rundeck-plugin-bootstrap
 
   # backend
