@@ -22,7 +22,7 @@ services:
     build:
       context: rundeck-plugin-bootstrap
       args:
-        COMMIT: c3ebc59c35eb824d359c04370127aff4e64e6d70
+        VERSION: "0.4.9"
     image: playground-rundeck-plugin-bootstrap
 
   # backend
