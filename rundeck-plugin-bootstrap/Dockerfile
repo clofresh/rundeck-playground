@@ -7,6 +7,6 @@ RUN cd /root/plugin-bootstrap \
     && unzip plugin-bootstrap.zip \
     && rm plugin-bootstrap.zip \
     && cd plugin-bootstrap-${COMMIT} \
-    && gradle --no-daemon build :distZip
+    && ./gradlew distZip
 RUN unzip -d /root/tools/ /root/plugin-bootstrap/plugin-bootstrap-${COMMIT}/build/distributions/rundeck-plugin-bootstrap-0.1.0-SNAPSHOT.zip \
     && rm -rf /root/plugin-bootstrap

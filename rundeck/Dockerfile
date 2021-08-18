@@ -1,7 +1,8 @@
 FROM rundeck/rundeck:SNAPSHOT
 
-COPY --chown=rundeck:rundeck ssh /home/rundeck/.ssh
+COPY --chown=rundeck:root ssh /home/rundeck/.ssh
 RUN chmod 0700 /home/rundeck/.ssh \
     && chmod 0600 /home/rundeck/.ssh/* \
     && chmod 0644 /home/rundeck/.ssh/*.pub
-COPY --chown=rundeck:rundeck nodes.yaml /home/rundeck/
+RUN ls -lah /home/rundeck/.ssh
+COPY --chown=rundeck:root nodes.yaml /home/rundeck/
