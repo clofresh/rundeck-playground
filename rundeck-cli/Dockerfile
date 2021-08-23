@@ -6,6 +6,6 @@ RUN mkdir /root/rd && curl -sL https://github.com/rundeck/rundeck-cli/archive/${
 RUN cd /root/rd/ \
     && unzip rd.zip \
     && cd rundeck-cli-${COMMIT} \
-    && gradle --no-daemon :distZip
+    && ./gradlew distZip
 RUN unzip -d /root/tools /root/rd/rundeck-cli-${COMMIT}/build/distributions/rd-0.1.0-SNAPSHOT.zip \
     && rm -rf /root/rd
